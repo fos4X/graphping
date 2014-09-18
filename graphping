@@ -35,16 +35,19 @@ import datetime
 from pprint import pprint, pformat
 
 # number of ping packets to send
-packets = 30
+packets = os.getenv("PACKETS", 30)
 
 # Graphite
-g_host = 'localhost'
-g_port = 2003
-g_prefix = 'ping'
+g_host = os.getenv('GRAPHITE_HOST', 'localhost')
+g_port = os.getenv('GRAPHITE_PORT', 2003)
+g_prefix = os.getenv('GRAPHITE_PREFIX', 'ping')
 
 # System
-fping = '/usr/sbin/fping'
-logfile = '/tmp/graphping.log'
+fping = os.getenv('FPING_PATH', '/usr/sbin/fping')
+logfile = os.getenv('LOGFILE', '/tmp/ping-graphite.log')
+
+# Daemonize
+daemonize = bool(int(os.getenv('DAEMONIZE', '1')))
 
 def handle_signal (sig, _frame):
     signals = dict((k, v) for v, k in signal.__dict__.iteritems() if v.startswith('SIG'))
@@ -84,7 +87,7 @@ class App:
         self.g_port = g_port
         self.g_prefix = g_prefix
         self.logfile = logfile
-        self.daemonize = True
+        self.daemonize = daemonize
         self.stop = False
         self.level = logging.INFO
 

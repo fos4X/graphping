@@ -70,30 +70,25 @@ pattern = ^ping\.
 retentions = 1m:1d,5m:31d,60m:366d
 ```
 
-At the top of the script, there are some configurable items:
+At the top of the script, there are some configurable items. They can be modified by changing the script or
+setting the corresponding environment variables:
 
 ```
 # number of ping packets to send
-packets = 30
+packets = os.getenv("PACKETS", 30)
 
 # Graphite
-g_host = 'localhost'
-g_port = 2003
-g_prefix = 'ping'
+g_gost = os.getenv('GRAPHITE_HOST', 'localhost')
+g_port = os.getenv('GRAPHITE_PORT', 2003)
+g_prefix = os.getenv('GRAPHITE_PREFIX', 'ping')
 
 # System
-fping = '/usr/sbin/fping'
-logfile = '/tmp/ping-graphite.log'
-```
+fping = os.getenv('FPING_PATH', '/usr/sbin/fping')
+logfile = os.getenv('LOGFILE', '/tmp/ping-graphite.log')
 
-If you want to run the program in the foreground instead of daemonized, search
-the program for a line that says
-
+# Daemonize -- use empty string to set to False
+daemonize = bool(os.getenv('DAEMONIZE', True))
 ```
-self.daemonize = True
-```
-
-and change the value to `False`.
 
 Usage
 -----
