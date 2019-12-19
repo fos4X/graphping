@@ -183,6 +183,13 @@ class App:
                         sry[t]['min'] = float(m.group(3))
                         sry[t]['avg'] = float(m.group(4))
                         sry[t]['max'] = float(m.group(5))
+                        continue
+
+                    m = re.match('([^ ]*)\s* : xmt/rcv/%loss = \d+/\d+/(\d+)%$', l)
+                    if m:
+                        t = m.group(1)
+                        sry[t]['loss'] = int(m.group(2))
+                        continue
 
                 if self.ping:
                     ret = self.ping.poll()
@@ -212,10 +219,10 @@ class App:
                         self.logger.info("Sending data for %s. ts=%d => %s" % (safe_target, ts,
                             datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
                         s.send(b"%s %d %d\n" % (m_loss.encode('utf-8'), summary['loss'], ts))
-                        s.send(b"%s %.2f %d\n" % (m_median.encode('utf-8'), self.median(rtt[target]), ts))
-                        s.send(b"%s %.2f %d\n" % (m_min.encode('utf-8'), summary['min'], ts))
-                        s.send(b"%s %.2f %d\n" % (m_avg.encode('utf-8'), summary['avg'], ts))
-                        s.send(b"%s %.2f %d\n" % (m_max.encode('utf-8'), summary['max'], ts))
+                        if target in rtt and rtt[target]: s.send(b"%s %.2f %d\n" % (m_median.encode('utf-8'), self.median(rtt[target]), ts))
+                        if 'min' in summary: s.send(b"%s %.2f %d\n" % (m_min.encode('utf-8'), summary['min'], ts))
+                        if 'avg' in summary: s.send(b"%s %.2f %d\n" % (m_avg.encode('utf-8'), summary['avg'], ts))
+                        if 'max' in summary: s.send(b"%s %.2f %d\n" % (m_max.encode('utf-8'), summary['max'], ts))
                     except Exception:
                         self.logger.info("Could not send! Summary:")
                         self.logger.info(pformat(summary))
