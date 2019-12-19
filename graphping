@@ -89,14 +89,14 @@ class App:
         self.level = logging.INFO
 
     def setup_logging(self):
-        os.umask(022)
+        os.umask(0o22)
         self.logger = logging.getLogger()
         self.logger.setLevel(self.level)
         formatter = logging.Formatter('%(asctime)s [%(process)d] %(levelname)s: %(message)s','%Y-%m-%d %H:%M:%S')
         try:
             loghandler = logging.handlers.WatchedFileHandler(self.logfile)
         except IOError:
-            print "Could not open logfile (%s)" % self.logfile
+            print("Could not open logfile (%s)" % self.logfile)
             return False
 
         loghandler.setFormatter(formatter)
@@ -117,7 +117,7 @@ class App:
 
     def median(self, alist):
         srtd = sorted(alist) # returns a sorted copy
-        mid = len(alist)/2   # remember that integer division truncates
+        mid = len(alist)//2   # remember that integer division truncates
         if len(alist) % 2 == 0:  # take the avg of middle two
             return (srtd[mid-1] + srtd[mid]) / 2.0
         else:
@@ -129,7 +129,7 @@ class App:
             self.usage()
 
     def usage(self):
-        print "Usage: ping-graphite <target> [<target> ...]"
+        print("Usage: ping-graphite <target> [<target> ...]")
         sys.exit(2)
 
     def main(self):
@@ -152,15 +152,15 @@ class App:
                     # handle gracefully
                     try:
                         raw_line = self.ping.stdout.readline()
-                    except IOError, e:
+                    except IOError as e:
                         if e.errno == errno.EINTR:
                             continue
 
                     # If 'fping' is done/gone, terminate. This also catches a SIGINT.
-                    if raw_line == '':
+                    if raw_line == b'':
                         break
 
-                    l = raw_line.rstrip()
+                    l = raw_line.rstrip().decode('utf-8')
 
                     # latinum : [0], 84 bytes, 6.46 ms (6.46 avg, 0% loss)
                     m = re.match('([^ ]*)\s* : \[\d+\]+, \d+ bytes, (.*) ms', l)
@@ -208,11 +208,11 @@ class App:
                     try:
                         self.logger.info("Sending data for %s. ts=%d => %s" % (safe_target, ts,
                             datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')))
-                        s.send("%s %d %d\n" % (m_loss, summary['loss'], ts))
-                        s.send("%s %.2f %d\n" % (m_median, self.median(rtt[target]), ts))
-                        s.send("%s %.2f %d\n" % (m_min, summary['min'], ts))
-                        s.send("%s %.2f %d\n" % (m_avg, summary['avg'], ts))
-                        s.send("%s %.2f %d\n" % (m_max, summary['max'], ts))
+                        s.send(b"%s %d %d\n" % (m_loss.encode('utf-8'), summary['loss'], ts))
+                        s.send(b"%s %.2f %d\n" % (m_median.encode('utf-8'), self.median(rtt[target]), ts))
+                        s.send(b"%s %.2f %d\n" % (m_min.encode('utf-8'), summary['min'], ts))
+                        s.send(b"%s %.2f %d\n" % (m_avg.encode('utf-8'), summary['avg'], ts))
+                        s.send(b"%s %.2f %d\n" % (m_max.encode('utf-8'), summary['max'], ts))
                     except Exception:
                         self.logger.info("Could not send! Summary:")
                         self.logger.info(pformat(summary))
