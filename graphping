@@ -223,9 +223,10 @@ class App:
                         if 'min' in summary: s.send(b"%s %.2f %d\n" % (m_min.encode('utf-8'), summary['min'], ts))
                         if 'avg' in summary: s.send(b"%s %.2f %d\n" % (m_avg.encode('utf-8'), summary['avg'], ts))
                         if 'max' in summary: s.send(b"%s %.2f %d\n" % (m_max.encode('utf-8'), summary['max'], ts))
-                    except Exception:
+                    except Exception as e:
                         self.logger.info("Could not send! Summary:")
                         self.logger.info(pformat(summary))
+                        self.logger.exception(e)
 
                 s.close()
 
